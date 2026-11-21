@@ -40,6 +40,32 @@ common.apps.tk-multi-loader2.location:
   type: app_store
   name: tk-multi-loader2
   version: v1.25.7
+# sg_pipeline: File Open / File Save with versioned work files (needs the
+# templates in core/templates.yml; same version as tk-config-default2 v1.7.8)
+common.apps.tk-multi-workfiles2.location:
+  type: app_store
+  name: tk-multi-workfiles2
+  version: v0.18.1
+# what the Workfiles browser shows: assets by type, shots by sequence, then tasks
+common.apps.tk-multi-workfiles2.entities:
+- caption: Assets
+  entity_type: Asset
+  hierarchy: [sg_asset_type, code]
+  filters:
+  sub_hierarchy:
+    entity_type: Task
+    filters:
+    link_field: entity
+    hierarchy: [step]
+- caption: Shots
+  entity_type: Shot
+  filters:
+  hierarchy: [sg_sequence, code]
+  sub_hierarchy:
+    entity_type: Task
+    filters:
+    link_field: entity
+    hierarchy: [step]
 common.apps.tk-multi-shotgunpanel.location:
   type: app_store
   name: tk-multi-shotgunpanel

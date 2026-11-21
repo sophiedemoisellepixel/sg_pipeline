@@ -1,15 +1,14 @@
-# Copyright (c) 2016 Shotgun Software Inc.
+# sg_pipeline: the storage root all project folders are created under.
 #
-# CONFIDENTIAL AND PROPRIETARY
-#
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
-# Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
-# not expressly granted therein are reserved by Shotgun Software Inc.
+# The path comes from the "primary" Local Storage on the ShotGrid site
+# (Site Preferences > File Management): windows_path C:\Studio_Projects.
+# Toolkit fills the paths in from the site when it starts, and refuses to
+# start if the site has no Local Storage of this name.
 
-# this file defines all the different disk locations that this config uses.
-# these paths can be altered at project creation time to ensure that they map
-# to the correct location.
-
-# the zero configuration setup does not define any storage points.
+primary:
+    description: Production data. Each project gets a folder named after its
+        tank_name (StudioReady_Demo) below this location.
+    mac_path:
+    linux_path:
+    windows_path:
+    default: true

@@ -8,6 +8,7 @@ Custom ShotGrid (Flow Production Tracking) Toolkit pipeline, built on a fork of
 | Path | What it is |
 | --- | --- |
 | `config/` | The Toolkit pipeline configuration (fork of the basic config). |
+| `config/core/` | Studio folder structure: `roots.yml` (the `primary` Local Storage, `C:\Studio_Projects`), `schema/` (the folders created per asset, shot and task) and `templates.yml` (work and publish paths; based on tk-config-default2 v1.7.8, our additions marked `sg_pipeline`). |
 | `config/hooks/` | Our custom hooks, referenced from the env files as `{config}/...`. |
 | `config/bundles/` | In-house engines: `tk-substancepainter`, `tk-mari`, `tk-katana`. |
 | `griptape/` | ShotGrid nodes for Griptape Nodes (`sg_pipeline_nodes.py`, `sg_pipeline_nodes_3d.py`), the model-to-USD converter, their installer and the ShotGrid bridge. |
@@ -63,5 +64,6 @@ Uses the sign-in saved by the desktop app and only reads from ShotGrid.
 | `tests\test_griptape_nodes.py` | Griptape engine's `python.exe`, outside the Griptape app | only with `--publish` (one Texture publish) |
 | `tests\test_mesh_to_usd.py` | Griptape engine's `python.exe`; also uses Katana's USD library and `mayapy` | no (its node dry run only reads, and is skipped when not signed in) |
 | `tests\run_mesh_consumers_check.ps1 -Usd <file>` | Painter (window) and Mari 7.1v2 (headless) build a project from a USD file, no ShotGrid | no |
+| `tests\check_folder_structure.py` | the desktop app's `Python3\python.exe`; starts Toolkit with the config | only with `--create-folders` (folders of Task 5827, recorded as FilesystemLocation) |
 | `tests\check_katana_launcher.py` | the desktop app's `Python3\python.exe`; launches nothing | no |
 | `tests\check_desktop_launcher.py` | the desktop app's `Python3\python.exe` | only with `--create` (adds the missing Painter, Mari and Katana Software entries) |

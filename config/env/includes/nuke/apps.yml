@@ -40,6 +40,22 @@ nuke.apps.tk-multi-publish2:
       settings: {}
   location: "@common.apps.tk-multi-publish2.location"
 
+# sg_pipeline: work files in <step>/work/nuke/<name>.v###.nk (core/templates.yml)
+nuke.apps.tk-multi-workfiles2.asset_step:
+  template_work: nuke_asset_work
+  template_work_area: asset_work_area_nuke
+  template_publish: nuke_asset_publish
+  template_publish_area: asset_publish_area_nuke
+  entities: '@common.apps.tk-multi-workfiles2.entities'
+  location: '@common.apps.tk-multi-workfiles2.location'
+nuke.apps.tk-multi-workfiles2.shot_step:
+  template_work: nuke_shot_work
+  template_work_area: shot_work_area_nuke
+  template_publish: nuke_shot_publish
+  template_publish_area: shot_publish_area_nuke
+  entities: '@common.apps.tk-multi-workfiles2.entities'
+  location: '@common.apps.tk-multi-workfiles2.location'
+
 nuke.apps.tk-multi-loader2:
   action_mappings:
     Alembic Cache: [read_node]

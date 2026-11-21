@@ -20,6 +20,7 @@ includes:
 
 nuke.shot_step:
   apps:
+    tk-multi-workfiles2: '@nuke.apps.tk-multi-workfiles2.shot_step'
     tk-multi-about: '@common.apps.tk-multi-about'
 
     tk-multi-setframerange: '@common.apps.tk-multi-setframerange'
@@ -33,7 +34,9 @@ nuke.shot_step:
     tk-nuke-quickreview: '@nuke.apps.tk-nuke-quickreview'
 
   location: "@common.engines.tk-nuke.location"
-  menu_favourites: []
+  menu_favourites:
+  - {app_instance: tk-multi-workfiles2, name: File Open...}
+  - {app_instance: tk-multi-workfiles2, name: File Save...}
   run_at_startup:
   - {app_instance: tk-multi-shotgunpanel, name: ''}
   launch_builtin_plugins: [basic]
