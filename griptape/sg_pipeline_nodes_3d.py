@@ -7,8 +7,8 @@ ShotGrid node for AI-generated 3D models in Griptape Nodes.
                         "USD Geometry", which Maya, Painter, Mari, Katana and
                         Nuke already load.
 
-Installed into Griptape's sandbox library by griptape/install.ps1, next to
-sg_pipeline_nodes.py, whose ShotGrid bridge it uses.
+Part of the "ShotGrid Pipeline" Griptape library (griptape/griptape-nodes-library.json),
+next to sg_pipeline_nodes.py, whose ShotGrid bridge it uses.
 """
 
 import os
@@ -20,8 +20,9 @@ from griptape_nodes.exe_types.core_types import Parameter, ParameterMode
 from griptape_nodes.exe_types.node_types import ControlNode
 from griptape_nodes.traits.options import Options
 
-# filled in by griptape/install.ps1
-SG_PIPELINE_REPO = r"@SG_PIPELINE_REPO@"
+# the repo this file belongs to (this file is <repo>/griptape/sg_pipeline_nodes_3d.py);
+# the SG_PIPELINE_REPO environment variable overrides it
+SG_PIPELINE_REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEFAULT_PROJECT_ID = 91
 
 

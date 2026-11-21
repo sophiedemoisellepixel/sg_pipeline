@@ -1,0 +1,53 @@
+{
+  "name": "ShotGrid Pipeline",
+  "library_schema_version": "0.10.0",
+  "metadata": {
+    "author": "Demoiselle Pixel",
+    "description": "Load publishes from and publish AI images and 3D models to Flow Production Tracking (ShotGrid), using the sign-in saved by the desktop app. Publishes load in the sg_pipeline Toolkit config's Maya, Substance Painter, Mari, Katana and Nuke loaders.",
+    "library_version": "0.2.0",
+    "engine_version": "0.105.0",
+    "tags": ["ShotGrid", "Flow Production Tracking", "Pipeline", "USD", "VFX"],
+    "dependencies": {
+      "pip_dependencies": ["numpy", "Pillow", "requests"]
+    }
+  },
+  "categories": [
+    {
+      "ShotGrid": {
+        "title": "ShotGrid",
+        "description": "Load from and publish to Flow Production Tracking.",
+        "color": "border-orange-500",
+        "icon": "Database"
+      }
+    }
+  ],
+  "nodes": [
+    {
+      "class_name": "ShotGridLoadPublish",
+      "file_path": "sg_pipeline_nodes.py",
+      "metadata": {
+        "category": "ShotGrid",
+        "description": "Finds a publish (newest by type and name, or by id) and outputs its image, file path and publish id.",
+        "display_name": "ShotGrid Load Publish"
+      }
+    },
+    {
+      "class_name": "ShotGridPublishImage",
+      "file_path": "sg_pipeline_nodes.py",
+      "metadata": {
+        "category": "ShotGrid",
+        "description": "Saves an image as PNG and publishes it as a Texture (UDIM 1001), Image or Rendered Image.",
+        "display_name": "ShotGrid Publish Image"
+      }
+    },
+    {
+      "class_name": "ShotGridPublish3D",
+      "file_path": "sg_pipeline_nodes_3d.py",
+      "metadata": {
+        "category": "ShotGrid",
+        "description": "Converts a 3D model (GLB, glTF, USDZ, FBX, OBJ) to USD and publishes it as USD Geometry.",
+        "display_name": "ShotGrid Publish 3D"
+      }
+    }
+  ]
+}

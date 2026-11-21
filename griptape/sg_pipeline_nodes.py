@@ -7,7 +7,8 @@ ShotGrid (Flow Production Tracking) nodes for Griptape Nodes.
                            it as a publish, which the Maya, Nuke and Mari
                            loaders can then load.
 
-Installed into Griptape's sandbox library by griptape/install.ps1. The nodes
+Part of the "ShotGrid Pipeline" Griptape library (griptape/griptape-nodes-library.json),
+which Griptape loads from this folder; griptape/install.ps1 registers it. The nodes
 talk to ShotGrid through griptape/sg_bridge.py, run with the desktop app's
 Python, so the sign-in saved by the desktop app is used and Griptape never
 sees any credentials.
@@ -26,8 +27,9 @@ from griptape_nodes.exe_types.node_types import ControlNode, DataNode
 from griptape_nodes.retained_mode.griptape_nodes import GriptapeNodes
 from griptape_nodes.traits.options import Options
 
-# filled in by griptape/install.ps1
-SG_PIPELINE_REPO = r"@SG_PIPELINE_REPO@"
+# the repo this file belongs to (this file is <repo>/griptape/sg_pipeline_nodes.py);
+# the SG_PIPELINE_REPO environment variable overrides it
+SG_PIPELINE_REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DESKTOP_PYTHON = r"C:\Program Files\Shotgun\Python3\python.exe"
 
 DEFAULT_PROJECT_ID = 91
