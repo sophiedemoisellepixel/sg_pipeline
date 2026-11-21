@@ -20,5 +20,8 @@ placeholder
 .gitignore
 .git
 
+# sg_pipeline: empty schema folders hold a .gitkeep so git keeps them
+.gitkeep
+
 # this is the last line of the file
 ##########################################################################################
