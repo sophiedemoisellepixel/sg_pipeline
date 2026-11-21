@@ -1,0 +1,35 @@
+# sg_pipeline: apps of the Katana integration, shared by all of its environments.
+
+includes:
+- ../common/apps.yml
+
+katana.apps.tk-multi-publish2:
+  help_url: "@common.apps.tk-multi-publish2.help_url"
+  collector: "{self}/collector.py:{config}/tk-multi-publish2/katana/collector.py"
+  publish_plugins:
+  # Katana -> Nuke: publish the frames each Render node output wrote
+  - name: Publish Render
+    hook: "{self}/publish_file.py:{config}/tk-multi-publish2/katana/publish_render.py"
+    settings: {}
+  location: "@common.apps.tk-multi-publish2.location"
+
+katana.apps.tk-multi-loader2:
+  action_mappings:
+    # Maya -> Katana
+    USD Geometry: [katana_usd_in]
+  actions_hook: '{config}/tk-multi-loader2/tk-katana_actions.py'
+  entities:
+  - caption: Current Project
+    type: Hierarchy
+    root: "{context.project}"
+    publish_filters: []
+  - caption: My Tasks
+    type: Query
+    entity_type: Task
+    filters:
+    - [project, is, '{context.project}']
+    - [task_assignees, is, '{context.user}']
+    hierarchy: [entity, content]
+  # only show the latest publish of each path (see the note in maya/apps.yml)
+  publish_filters: [["sg_status_list", "is_not", null]]
+  location: "@common.apps.tk-multi-loader2.location"

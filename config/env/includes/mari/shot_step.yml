@@ -1,0 +1,16 @@
+# sg_pipeline: Mari integration in its shot_step configuration
+
+includes:
+- ../common/engines.yml
+- ../common/apps.yml
+- apps.yml
+
+mari.shot_step:
+  apps:
+    tk-multi-about: '@common.apps.tk-multi-about'
+
+    tk-multi-loader2: '@mari.apps.tk-multi-loader2'
+
+    tk-multi-publish2: '@mari.apps.tk-multi-publish2'
+
+  location: "@common.engines.tk-mari.location"

@@ -1,0 +1,17 @@
+# sg_pipeline: Katana integration in its project configuration
+
+includes:
+- ../common/engines.yml
+- ../common/apps.yml
+- apps.yml
+
+katana.project:
+  apps:
+    tk-multi-about: '@common.apps.tk-multi-about'
+
+    tk-multi-loader2: '@katana.apps.tk-multi-loader2'
+
+    tk-multi-publish2: '@katana.apps.tk-multi-publish2'
+
+
+  location: "@common.engines.tk-katana.location"

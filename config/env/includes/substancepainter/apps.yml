@@ -1,0 +1,35 @@
+# sg_pipeline: apps of the Substance 3D Painter integration, shared by all of
+# its environments (project, asset_step, shot_step).
+
+includes:
+- ../common/apps.yml
+
+substancepainter.apps.tk-multi-publish2:
+  help_url: "@common.apps.tk-multi-publish2.help_url"
+  collector: "{self}/collector.py:{config}/tk-multi-publish2/substancepainter/collector.py"
+  publish_plugins:
+  # Painter -> Mari / Maya: export each texture set's maps and publish them
+  - name: Publish Textures
+    hook: "{self}/publish_file.py:{config}/tk-multi-publish2/substancepainter/publish_textures.py"
+    settings: {}
+  location: "@common.apps.tk-multi-publish2.location"
+
+substancepainter.apps.tk-multi-loader2:
+  action_mappings:
+    USD Geometry: [painter_new_project, painter_update_mesh]
+  actions_hook: '{config}/tk-multi-loader2/tk-substancepainter_actions.py'
+  entities:
+  - caption: Current Project
+    type: Hierarchy
+    root: "{context.project}"
+    publish_filters: []
+  - caption: My Tasks
+    type: Query
+    entity_type: Task
+    filters:
+    - [project, is, '{context.project}']
+    - [task_assignees, is, '{context.user}']
+    hierarchy: [entity, content]
+  # only show the latest publish of each path (see the note in maya/apps.yml)
+  publish_filters: [["sg_status_list", "is_not", null]]
+  location: "@common.apps.tk-multi-loader2.location"

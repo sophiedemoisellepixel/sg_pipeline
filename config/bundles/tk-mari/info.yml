@@ -1,0 +1,15 @@
+# Toolkit engine for Foundry Mari (sg_pipeline, in-house; not Autodesk's tk-mari).
+
+configuration:
+
+    debug_logging:
+        type: bool
+        description: Controls whether debug messages should be emitted to the logger
+        default_value: false
+
+display_name: "Flow Production Tracking Engine for Mari"
+description: "Flow Production Tracking integration in Mari"
+
+requires_shotgun_version:
+requires_core_version: "v0.21.1"
+minimum_python_version: "3.9"

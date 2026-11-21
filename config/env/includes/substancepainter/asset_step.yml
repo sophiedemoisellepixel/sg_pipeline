@@ -1,0 +1,16 @@
+# sg_pipeline: Substance 3D Painter integration in its asset_step configuration
+
+includes:
+- ../common/engines.yml
+- ../common/apps.yml
+- apps.yml
+
+substancepainter.asset_step:
+  apps:
+    tk-multi-about: '@common.apps.tk-multi-about'
+
+    tk-multi-loader2: '@substancepainter.apps.tk-multi-loader2'
+
+    tk-multi-publish2: '@substancepainter.apps.tk-multi-publish2'
+
+  location: "@common.engines.tk-substancepainter.location"
