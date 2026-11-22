@@ -31,6 +31,7 @@ desktop2.all:
     tk-multi-launchapp:
       scan_all_projects: true
       use_software_entity: true
+      hook_before_app_launch: "{config}/tk-multi-launchapp/before_app_launch.py"
       location: "@common.apps.tk-multi-launchapp.location"
 
   location: "@common.engines.tk-desktop2.location"

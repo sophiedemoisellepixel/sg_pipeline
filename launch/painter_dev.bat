@@ -12,6 +12,8 @@ set "REPO=%~dp0.."
 for %%I in ("%REPO%") do set "REPO=%%~fI"
 set "SG_DESKTOP_CACHE=C:\Program Files\Shotgun\Resources\Desktop\Python\bundle_cache"
 
+rem colour: the project's OCIO config, as the desktop app sets it (before_app_launch.py)
+set "OCIO=%REPO%\config\color\sg_pipeline.ocio"
 set "TK_BOOTSTRAP_CONFIG_OVERRIDE=%REPO%\config"
 set "SUBSTANCE_PAINTER_PLUGINS_PATH=%REPO%\config\bundles\tk-substancepainter\painter"
 set "SGTK_CORE_PYTHON_PATH=%SG_DESKTOP_CACHE%\app_store\tk-core\v0.24.6\python"

@@ -38,6 +38,8 @@ echo Arnold: not loaded, %KTOA_ROOT% does not exist
 
 rem ---- 2. Flow Production Tracking, in front of what is already there
 set "KATANA_RESOURCES=%REPO%\config\bundles\tk-katana\katana_resources;%KATANA_RESOURCES%"
+rem colour: the project's OCIO config, as the desktop app sets it (before_app_launch.py)
+set "OCIO=%REPO%\config\color\sg_pipeline.ocio"
 set "TK_BOOTSTRAP_CONFIG_OVERRIDE=%REPO%\config"
 set "SGTK_CORE_PYTHON_PATH=%SG_DESKTOP_CACHE%\app_store\tk-core\v0.24.6\python"
 set "SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS=%SG_DESKTOP_CACHE%"
