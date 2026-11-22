@@ -33,3 +33,13 @@ substancepainter.apps.tk-multi-loader2:
   # only show the latest publish of each path (see the note in maya/apps.yml)
   publish_filters: [["sg_status_list", "is_not", null]]
   location: "@common.apps.tk-multi-loader2.location"
+
+# sg_pipeline: Workfiles (File Open / Save) with our Painter scene operations
+substancepainter.apps.tk-multi-workfiles2.asset_step:
+  template_work: substancepainter_asset_work
+  template_work_area: asset_work_area_substancepainter
+  template_publish: substancepainter_asset_publish
+  template_publish_area: asset_publish_area_substancepainter
+  hook_scene_operation: '{config}/tk-multi-workfiles2/scene_operation_tk-substancepainter.py'
+  entities: '@common.apps.tk-multi-workfiles2.entities'
+  location: '@common.apps.tk-multi-workfiles2.location'

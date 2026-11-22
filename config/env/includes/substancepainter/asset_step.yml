@@ -7,6 +7,7 @@ includes:
 
 substancepainter.asset_step:
   apps:
+    tk-multi-workfiles2: '@substancepainter.apps.tk-multi-workfiles2.asset_step'
     tk-multi-about: '@common.apps.tk-multi-about'
 
     tk-multi-loader2: '@substancepainter.apps.tk-multi-loader2'

@@ -61,9 +61,12 @@ ours = ["katana_asset_work", "katana_shot_work", "substancepainter_asset_work", 
 missing = [name for name in ours + ["maya_asset_work", "nuke_asset_work", "maya_shot_work"] if name not in tk.templates]
 check("templates parse, ours included (%d templates)" % len(tk.templates), not missing, "missing: %s" % missing)
 
-for env_name in ("asset_step", "shot_step"):
+# Mari has no Workfiles on purpose: its projects live in Mari's own cache, not in files
+WORKFILES = {"asset_step": ("tk-maya", "tk-nuke", "tk-katana", "tk-substancepainter"),
+             "shot_step": ("tk-maya", "tk-nuke", "tk-katana")}
+for env_name, engine_names in WORKFILES.items():
     env = tk.pipeline_configuration.get_environment(env_name)
-    for engine_name in ("tk-maya", "tk-nuke"):
+    for engine_name in engine_names:
         apps = env.get_apps(engine_name)
         has = "tk-multi-workfiles2" in apps
         detail = ""
@@ -71,8 +74,12 @@ for env_name in ("asset_step", "shot_step"):
             settings = env.get_app_settings(engine_name, "tk-multi-workfiles2")
             unknown = [settings[k] for k in ("template_work", "template_work_area", "template_publish", "template_publish_area")
                        if settings.get(k) not in tk.templates]
-            has = not unknown
-            detail = "unknown templates: %s" % unknown if unknown else settings["template_work"]
+            hook = settings.get("hook_scene_operation") or ""
+            hook_file = hook.replace("{config}", os.path.join(REPO, "config", "hooks")) if hook.startswith("{config}") else None
+            has = not unknown and (hook_file is None or os.path.isfile(hook_file))
+            detail = ("unknown templates: %s" % unknown if unknown
+                      else "hook missing: %s" % hook_file if hook_file and not os.path.isfile(hook_file)
+                      else settings["template_work"])
         check("Workfiles in %s / %s" % (env_name, engine_name), has, detail)
 
 fields = {"sg_asset_type": "Prop", "Asset": "testAsset", "Step": "MDL", "name": "scene", "version": 1}

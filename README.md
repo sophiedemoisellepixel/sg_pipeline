@@ -65,5 +65,6 @@ Uses the sign-in saved by the desktop app and only reads from ShotGrid.
 | `tests\test_mesh_to_usd.py` | Griptape engine's `python.exe`; also uses Katana's USD library and `mayapy` | no (its node dry run only reads, and is skipped when not signed in) |
 | `tests\run_mesh_consumers_check.ps1 -Usd <file>` | Painter (window) and Mari 7.1v2 (headless) build a project from a USD file, no ShotGrid | no |
 | `tests\check_folder_structure.py` | the desktop app's `Python3\python.exe`; starts Toolkit with the config | only with `--create-folders` (folders of Task 5827, recorded as FilesystemLocation) |
+| `tests\test_workfiles_hooks.py` | `katanaBin.exe --script` (real Katana, no window); or the desktop app's Python for Painter (a stand-in for Painter's project API) | no |
 | `tests\check_katana_launcher.py` | the desktop app's `Python3\python.exe`; launches nothing | no |
 | `tests\check_desktop_launcher.py` | the desktop app's `Python3\python.exe` | only with `--create` (adds the missing Painter, Mari and Katana Software entries) |

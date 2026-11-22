@@ -7,6 +7,7 @@ includes:
 
 katana.shot_step:
   apps:
+    tk-multi-workfiles2: '@katana.apps.tk-multi-workfiles2.shot_step'
     tk-multi-about: '@common.apps.tk-multi-about'
 
     tk-multi-loader2: '@katana.apps.tk-multi-loader2'
