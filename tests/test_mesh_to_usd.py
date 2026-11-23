@@ -304,4 +304,20 @@ check("dry run: nothing registered", out["new_publish_id"] == 0 and out["info"].
 check("the node wrote the USD and kept the source GLB",
       os.path.exists(out["published_path"])
       and os.path.exists(os.path.join(os.path.dirname(out["published_path"]), "source", "generated.glb")))
+
+# ---- the same node in an Asset task: the studio folder <step>/publish/usd/<name>/v###/
+task_node = nodes_3d.ShotGridPublish3D("publish3d_task")
+for key, value in {"model": glb, "name": "aiProp_model", "entity_type": "Asset", "entity_id": 1412,
+                   "task_id": 5827, "dry_run": True}.items():
+    task_node.set_parameter_value(key, value)
+task_node.process()
+task_out = task_node.parameter_output_values
+print("     ", task_out["info"].replace("\n", " | "))
+usd_folder = os.path.dirname(task_out["published_path"])
+check("in Task 5827 the USD goes to the task's publish/usd/aiPropmodel/v###",
+      os.path.normcase(os.path.dirname(usd_folder)) == os.path.normcase(
+          r"C:\Studio_Projects\StudioReady_Demo\assets\Prop\testAsset\MDL\publish\usd\aiPropmodel"))
+check("  with its textures and source next to it",
+      os.path.isfile(task_out["published_path"]) and os.path.isdir(os.path.join(usd_folder, "textures"))
+      and os.path.isfile(os.path.join(usd_folder, "source", "generated.glb")))
 print("\nALL CHECKS PASSED")

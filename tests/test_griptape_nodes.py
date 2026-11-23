@@ -124,6 +124,24 @@ if PUBLISH:
 else:
     check("dry run: nothing was registered", out["new_publish_id"] == 0 and out["info"].startswith("DRY RUN"))
 
+# ---- the same publish in an Asset task: the studio folders (always a dry run)
+STEP = r"C:\Studio_Projects\StudioReady_Demo\assets\Prop\testAsset\MDL"
+for publish_type, expected_tail in (
+    ("Texture", r"publish\textures\griptapeTestbasecolor\v{v}\griptapeTest_basecolor.<UDIM>.png"),
+    ("Image", r"publish\griptape\griptapeTestbasecolor\v{v}\griptapeTestbasecolor.v{v}.png"),
+):
+    task_publish = nodes.ShotGridPublishImage("task_publish_%s" % publish_type)
+    task_out = run(task_publish, {
+        "image": tile, "name": "griptapeTest_basecolor", "publish_type": publish_type,
+        "entity_type": "Asset", "entity_id": ASSET_ID, "task_id": 5827, "dry_run": True,
+    })
+    version = "%03d" % int(task_out["info"].split(" v")[1][:3])
+    expected = os.path.join(STEP, expected_tail.format(v=version))
+    ok = os.path.normcase(task_out["published_path"]) == os.path.normcase(expected) and "studio folder" in task_out["info"]
+    print("     ", task_out["info"].replace("\n", " | "))
+    check("in Task 5827 a %s goes to the task's studio folder" % publish_type, ok)
+    check("  and the file is on disk", os.path.exists(task_out["published_path"].replace("<UDIM>", "1001")))
+
 empty = nodes.ShotGridPublishImage("empty")
 check("a publish without a name is refused", bool(empty.validate_before_node_run()))
 print("\nALL CHECKS PASSED")

@@ -308,21 +308,26 @@ class ShotGridPublishImage(ControlNode):
             "upstream_ids": [int(self.get_parameter_value("upstream_publish_id") or 0)],
         }
 
-        # the version decides the folder, so ask ShotGrid for it first
-        root = (
-            self.get_parameter_value("publish_root")
-            or os.environ.get("SG_PIPELINE_GRIPTAPE_PUBLISH_ROOT")
-            or os.path.join(os.path.expanduser("~"), "Documents", "GriptapeNodes", "sg_pipeline_publish")
-        )
-        version = call_bridge("next_version", request)["version_number"]
-        folder = os.path.join(root, "%s_%s" % (entity["type"], entity["id"]), name, "v%03d" % version)
-        os.makedirs(folder, exist_ok=True)
-        if publish_type == "Texture":
-            # textures are published the way Painter and Mari publish them: one file per UDIM tile
-            file_path = os.path.join(folder, "%s.1001.png" % name)
-            publish_path = os.path.join(folder, "%s.%s.png" % (name, UDIM_TOKEN))
-        else:
-            file_path = publish_path = os.path.join(folder, "%s_v%03d.png" % (name, version))
+        # the version decides the folder, so ask ShotGrid first; with a task, the
+        # bridge also gives the studio path (<step>/publish/textures or /griptape)
+        kind = "texture" if publish_type == "Texture" else "image"
+        located = call_bridge("locate", dict(request, kind=kind))
+        version = located["version_number"]
+        publish_path = located.get("path")
+        if not publish_path:
+            root = (
+                self.get_parameter_value("publish_root")
+                or os.environ.get("SG_PIPELINE_GRIPTAPE_PUBLISH_ROOT")
+                or os.path.join(os.path.expanduser("~"), "Documents", "GriptapeNodes", "sg_pipeline_publish")
+            )
+            folder = os.path.join(root, "%s_%s" % (entity["type"], entity["id"]), name, "v%03d" % version)
+            if kind == "texture":
+                publish_path = os.path.join(folder, "%s.%s.png" % (name, UDIM_TOKEN))
+            else:
+                publish_path = os.path.join(folder, "%s_v%03d.png" % (name, version))
+        # textures are published the way Painter and Mari publish them: one file per UDIM tile
+        file_path = publish_path.replace(UDIM_TOKEN, "1001")
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
         with open(file_path, "wb") as handle:
             handle.write(png)
 
@@ -330,7 +335,8 @@ class ShotGridPublishImage(ControlNode):
         publish = answer["publish"]
         self.parameter_output_values["published_path"] = publish_path
         self.parameter_output_values["new_publish_id"] = 0 if dry_run else publish["id"]
-        self.parameter_output_values["info"] = "%s%s v%03d (%s)\n%s" % (
+        self.parameter_output_values["info"] = "%s%s v%03d (%s)\n%s\n%s" % (
             "DRY RUN, nothing registered: " if dry_run else "Published id %s: " % publish.get("id"),
             name, version, publish_type, publish_path,
+            "studio folder of the task" if located.get("path") else "Griptape folder (%s)" % located.get("reason"),
         )

@@ -160,23 +160,29 @@ class ShotGridPublish3D(ControlNode):
             "upstream_ids": [int(self.get_parameter_value("upstream_publish_id") or 0)],
         }
 
-        root = (
-            self.get_parameter_value("publish_root")
-            or os.environ.get("SG_PIPELINE_GRIPTAPE_PUBLISH_ROOT")
-            or os.path.join(os.path.expanduser("~"), "Documents", "GriptapeNodes", "sg_pipeline_publish")
-        )
-        version = nodes.call_bridge("next_version", request)["version_number"]
-        folder = os.path.join(root, "%s_%s" % (entity["type"], entity["id"]), name, "v%03d" % version)
+        # with a task, the bridge gives the studio path <step>/publish/usd/<name>/v###/
+        located = nodes.call_bridge("locate", dict(request, kind="usd"))
+        version = located["version_number"]
+        usd_path = located.get("path")
+        if not usd_path:
+            root = (
+                self.get_parameter_value("publish_root")
+                or os.environ.get("SG_PIPELINE_GRIPTAPE_PUBLISH_ROOT")
+                or os.path.join(os.path.expanduser("~"), "Documents", "GriptapeNodes", "sg_pipeline_publish")
+            )
+            folder = os.path.join(root, "%s_%s" % (entity["type"], entity["id"]), name, "v%03d" % version)
+            usd_path = os.path.join(folder, "%s_v%03d.usd" % (name, version))
+        folder = os.path.dirname(usd_path)
         # the generated file is kept next to the USD, so it can be converted again
         source = model_file_from(self.get_parameter_value("model"), os.path.join(folder, "source"), nodes)
-        usd_path = os.path.join(folder, "%s_v%03d.usd" % (name, version))
         converted = mesh_to_usd.convert(source, usd_path, float(self.get_parameter_value("scale") or 1.0))
 
         publish = nodes.call_bridge(
             "publish", dict(request, path=usd_path, version_number=version, dry_run=dry_run)
         )["publish"]
 
-        details = []
+        details = ["studio folder of the task" if located.get("path")
+                   else "Griptape folder (%s)" % located.get("reason")]
         if converted.get("meshes") is not None:
             size = " x ".join(str(v) for v in converted.get("size_cm") or []) or "?"
             details.append("%s mesh(es), %s faces, %s material(s), size %s cm" % (

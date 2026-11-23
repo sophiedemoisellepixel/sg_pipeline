@@ -21,6 +21,14 @@ next_version  {"project_id", "name", "publish_type", "entity"?: {type, id}}
          -> {"version_number"} READS only: one more than the newest publish of
          that name and type on the entity.
 
+locate   {"project_id", "name", "publish_type", "kind": image|texture|usd,
+          "entity"?: {type, id}, "task_id"?}
+         -> {"version_number", "path" or null, "template"?, "reason"?} READS only:
+         the next version (as next_version) and, for an Asset or Shot task,
+         where the studio folder structure puts it (core/templates.yml under
+         the "primary" storage). path is null without a task; the node then
+         keeps its own folder.
+
 publish  {"project_id", "path", "name", "version_number"?, "publish_type",
           "entity"?: {type, id}, "task_id"?, "description"?, "upstream_ids"?, "dry_run"?}
          -> {"publish": {...}} WRITES one PublishedFile (and the publish type if
@@ -147,6 +155,88 @@ def next_version(request):
     return {"version_number": _next_version(sg, project, entity, request["name"], request["publish_type"])}
 
 
+# kind of Griptape publish -> template per entity type (config/core/templates.yml)
+GRIPTAPE_TEMPLATES = {
+    ("image", "Asset"): "griptape_image_asset_publish",
+    ("image", "Shot"): "griptape_image_shot_publish",
+    ("texture", "Asset"): "texture_asset_publish",
+    ("usd", "Asset"): "griptape_usd_asset_publish",
+    ("usd", "Shot"): "griptape_usd_shot_publish",
+}
+CONFIG = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "config")
+
+
+def studio_templates(sg, project_id):
+    """
+    The pipeline's path templates, rooted at <primary storage>/<project tank_name>.
+
+    Built straight from config/core/templates.yml with tk-core's template
+    classes: starting Toolkit itself takes about a minute, too slow for a node.
+    """
+    from tank import template, template_includes, templatekey
+    from tank_vendor import yaml
+
+    storage = sg.find_one("LocalStorage", [["code", "is", "primary"]], ["windows_path", "linux_path", "mac_path"])
+    project = sg.find_one("Project", [["id", "is", project_id]], ["tank_name"])
+    if not storage or not (project or {}).get("tank_name"):
+        return None
+    platform_paths = {"win32": storage["windows_path"], "linux2": storage["linux_path"], "darwin": storage["mac_path"]}
+    root = {k: os.path.join(v, project["tank_name"]) if v else None for k, v in platform_paths.items()}
+    templates_file = os.path.join(CONFIG, "core", "templates.yml")
+    with open(templates_file, encoding="utf-8") as handle:
+        data = yaml.safe_load(handle)
+    # expands includes and the @asset_root / @shot_root references, as Toolkit does
+    data = template_includes.process_includes(templates_file, data)
+    keys = templatekey.make_keys(data.get("keys") or {})
+    return template.make_template_paths(data.get("paths") or {}, keys, {"primary": root}, default_root="primary")
+
+
+def task_fields(sg, task_id):
+    """The template fields of a task's folders: Asset/Shot, Step, sg_asset_type, Sequence."""
+    task = sg.find_one("Task", [["id", "is", int(task_id)]], [
+        "entity", "step.Step.short_name", "entity.Asset.code", "entity.Asset.sg_asset_type",
+        "entity.Shot.code", "entity.Shot.sg_sequence",
+    ])
+    if not task or not task.get("entity") or not task.get("step.Step.short_name"):
+        return None, None
+    kind = task["entity"]["type"]
+    fields = {"Step": task["step.Step.short_name"]}
+    if kind == "Asset" and task.get("entity.Asset.sg_asset_type"):
+        fields.update(Asset=task["entity.Asset.code"], sg_asset_type=task["entity.Asset.sg_asset_type"])
+    elif kind == "Shot" and task.get("entity.Shot.sg_sequence"):
+        fields.update(Shot=task["entity.Shot.code"], Sequence=task["entity.Shot.sg_sequence"]["name"])
+    else:
+        return None, None
+    return kind, fields
+
+
+def locate(request):
+    sg = connect()
+    project_id = int(request["project_id"])
+    project = {"type": "Project", "id": project_id}
+    entity = request.get("entity") or project
+    entity = {"type": entity["type"], "id": int(entity["id"])}
+    version = _next_version(sg, project, entity, request["name"], request["publish_type"])
+    answer = {"version_number": version, "path": None}
+
+    if not request.get("task_id"):
+        answer["reason"] = "no task: the studio folders are per task"
+        return answer
+    kind, fields = task_fields(sg, request["task_id"])
+    template_name = GRIPTAPE_TEMPLATES.get((request.get("kind"), kind))
+    templates = studio_templates(sg, project_id) if template_name else None
+    if not template_name or not templates or template_name not in templates:
+        answer["reason"] = "no studio template for a %s publish on a %s task" % (request.get("kind"), kind)
+        return answer
+
+    name = request["name"]
+    # template {name} fields allow letters and digits only; textures keep the full name in the file
+    fields.update(name=re.sub(r"[^A-Za-z0-9]", "", name) or "main", version=version,
+                  texture_name=name, texture_ext="png")
+    answer.update(path=templates[template_name].apply_fields(fields), template=template_name)
+    return answer
+
+
 def publish(request):
     sg = connect()
     project = {"type": "Project", "id": int(request["project_id"])}
@@ -198,7 +288,7 @@ def main():
         command = sys.argv[1]
         # PowerShell pipes text with a byte-order mark in front
         request = json.loads(sys.stdin.read().lstrip("﻿\xef\xbb\xbf") or "{}")
-        answer = {"find": find, "next_version": next_version, "publish": publish}[command](request)
+        answer = {"find": find, "next_version": next_version, "locate": locate, "publish": publish}[command](request)
         answer["ok"] = True
     except EOFError:
         # tk-core tried to ask for a password on the console: the saved session expired

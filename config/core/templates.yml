@@ -780,6 +780,18 @@ paths:
     texture_asset_publish:
         definition: '@asset_root/publish/textures/{name}/v{version}/{texture_name}.{UDIM}.{texture_ext}'
 
+    # Griptape Nodes (griptape/sg_bridge.py "locate"): images, and generated 3D
+    # models, each version in its own folder so a model keeps its textures/ and
+    # source/ folders next to the USD
+    griptape_image_asset_publish:
+        definition: '@asset_root/publish/griptape/{name}/v{version}/{name}.v{version}.png'
+    griptape_image_shot_publish:
+        definition: '@shot_root/publish/griptape/{name}/v{version}/{name}.v{version}.png'
+    griptape_usd_asset_publish:
+        definition: '@asset_root/publish/usd/{name}/v{version}/{name}.v{version}.usd'
+    griptape_usd_shot_publish:
+        definition: '@shot_root/publish/usd/{name}/v{version}/{name}.v{version}.usd'
+
     # Rendered Image (Katana), one folder per render output
     render_asset_publish:
         definition: '@asset_root/publish/renders/{name}/v{version}/{Asset}_{name}_{aov_name}_v{version}.{SEQ}.{render_ext}'
