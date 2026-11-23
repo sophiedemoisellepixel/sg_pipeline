@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="640" viewBox="0 0 1200 640" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/>
+    </marker>
+    <marker id="arrowAI" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#4ade80"/>
+    </marker>
+  </defs>
+  <rect width="1200" height="640" rx="18" fill="#0f172a"/>
+  <text x="40" y="52" font-size="26" font-weight="700" fill="#f8fafc">The pipeline</text>
+  <text x="40" y="80" font-size="15" fill="#94a3b8">Every department loads what the one before it published. ShotGrid records each publish, its version and what it was made from.</text>
+
+  <!-- ShotGrid bar -->
+  <rect x="40" y="104" width="1120" height="58" rx="12" fill="#0c4a6e"/>
+  <text x="64" y="140" font-size="18" font-weight="700" fill="#e0f2fe">ShotGrid (Flow Production Tracking)</text>
+  <text x="1136" y="140" font-size="14" text-anchor="end" fill="#bae6fd">publishes · versions · upstream links · tasks</text>
+
+  <!-- lane labels -->
+  <text x="40" y="200" font-size="13" font-weight="700" fill="#38bdf8" letter-spacing="2">ASSET PIPELINE</text>
+  <text x="760" y="200" font-size="13" font-weight="700" fill="#f472b6" letter-spacing="2">SHOT PIPELINE</text>
+
+  <!-- department boxes -->
+  <g font-size="16">
+    <g transform="translate(40,214)">
+      <rect width="170" height="96" rx="12" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>
+      <text x="85" y="38" text-anchor="middle" font-weight="700" fill="#f8fafc">Modeling</text>
+      <text x="85" y="66" text-anchor="middle" font-size="14" fill="#94a3b8">Maya</text>
+    </g>
+    <g transform="translate(270,214)">
+      <rect width="170" height="96" rx="12" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>
+      <text x="85" y="38" text-anchor="middle" font-weight="700" fill="#f8fafc">Texturing</text>
+      <text x="85" y="66" text-anchor="middle" font-size="14" fill="#94a3b8">Substance Painter · Mari</text>
+    </g>
+    <g transform="translate(500,214)">
+      <rect width="170" height="96" rx="12" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>
+      <text x="85" y="38" text-anchor="middle" font-weight="700" fill="#f8fafc">Lookdev</text>
+      <text x="85" y="66" text-anchor="middle" font-size="14" fill="#94a3b8">Maya · Katana</text>
+    </g>
+    <g transform="translate(760,214)">
+      <rect width="170" height="96" rx="12" fill="#1e293b" stroke="#f472b6" stroke-width="2"/>
+      <text x="85" y="38" text-anchor="middle" font-weight="700" fill="#f8fafc">Lighting</text>
+      <text x="85" y="66" text-anchor="middle" font-size="14" fill="#94a3b8">Katana + Arnold</text>
+    </g>
+    <g transform="translate(990,214)">
+      <rect width="170" height="96" rx="12" fill="#1e293b" stroke="#f472b6" stroke-width="2"/>
+      <text x="85" y="38" text-anchor="middle" font-weight="700" fill="#f8fafc">Compositing</text>
+      <text x="85" y="66" text-anchor="middle" font-size="14" fill="#94a3b8">Nuke</text>
+    </g>
+  </g>
+
+  <!-- publish arrows between departments -->
+  <g stroke="#94a3b8" stroke-width="2.5" fill="none">
+    <path d="M212 262 H258"/>
+    <path d="M442 262 H488"/>
+    <path d="M672 262 H748"/>
+    <path d="M932 262 H978"/>
+  </g>
+  <g fill="#94a3b8">
+    <polygon points="268,262 256,255 256,269"/>
+    <polygon points="498,262 486,255 486,269"/>
+    <polygon points="758,262 746,255 746,269"/>
+    <polygon points="988,262 976,255 976,269"/>
+  </g>
+  <g font-size="12" fill="#cbd5e1" text-anchor="middle">
+    <text x="239" y="250">USD</text>
+    <text x="469" y="250">Texture</text>
+    <text x="714" y="250">USD + look</text>
+    <text x="959" y="250">Renders</text>
+  </g>
+  <!-- Maya -> Nuke geometry -->
+  <path d="M125 312 C 125 338, 1075 338, 1075 324" stroke="#475569" stroke-width="2" stroke-dasharray="6 6" fill="none"/>
+  <polygon points="1075,313 1069,325 1081,325" fill="#475569"/>
+  <text x="600" y="356" font-size="12" text-anchor="middle" fill="#94a3b8">USD geometry straight to comp (GeoImport)</text>
+
+  <!-- links to ShotGrid -->
+  <g stroke="#0ea5e9" stroke-width="1.5" stroke-dasharray="3 5" opacity="0.7">
+    <path d="M125 164 V212"/><path d="M355 164 V212"/><path d="M585 164 V212"/><path d="M845 164 V212"/><path d="M1075 164 V212"/>
+  </g>
+
+  <!-- AI layer -->
+  <rect x="40" y="420" width="1120" height="150" rx="14" fill="#052e16" stroke="#4ade80" stroke-width="2"/>
+  <text x="64" y="454" font-size="18" font-weight="700" fill="#dcfce7">AI workflows · Griptape Nodes</text>
+  <text x="64" y="480" font-size="14" fill="#86efac">Load a publish, run any AI model, publish the result back as a normal version.</text>
+  <g font-size="14" font-weight="600">
+    <g transform="translate(64,500)"><rect width="230" height="46" rx="10" fill="#14532d"/><text x="115" y="29" text-anchor="middle" fill="#f0fdf4">ShotGrid Load Publish</text></g>
+    <g transform="translate(330,500)"><rect width="230" height="46" rx="10" fill="#14532d"/><text x="115" y="29" text-anchor="middle" fill="#f0fdf4">ShotGrid Publish Image</text></g>
+    <g transform="translate(596,500)"><rect width="230" height="46" rx="10" fill="#14532d"/><text x="115" y="29" text-anchor="middle" fill="#f0fdf4">ShotGrid Publish 3D</text></g>
+  </g>
+  <text x="852" y="518" font-size="13" fill="#86efac">image → Texture, Image</text>
+  <text x="852" y="540" font-size="13" fill="#86efac">AI 3D model → USD Geometry</text>
+
+  <!-- AI arrows up into departments -->
+  <g stroke="#4ade80" stroke-width="2" fill="none">
+    <path d="M1075 418 V384"/>
+    <path d="M355 418 V384"/>
+    <path d="M125 418 V384"/>
+  </g>
+  <g fill="#4ade80">
+    <polygon points="1075,374 1069,386 1081,386"/>
+    <polygon points="355,374 349,386 361,386"/>
+    <polygon points="125,374 119,386 131,386"/>
+  </g>
+  <g font-size="12" fill="#86efac">
+    <text x="133" y="404">3D models</text>
+    <text x="363" y="404">AI textures</text>
+    <text x="1067" y="404" text-anchor="end">comp in / AI plates out</text>
+  </g>
+
+  <text x="40" y="610" font-size="13" fill="#64748b">Colour: one ACES 1.3 OCIO config for every application · Files: studio folder templates per task · Code: GitHub, built with Claude Code</text>
+</svg>

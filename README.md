@@ -1,7 +1,29 @@
+<p align="center">
+  <img src="docs/images/banner.svg" alt="sg_pipeline: a studio pipeline for animation and VFX, with AI workflows built in" width="100%">
+</p>
+
+<p align="center">
+  <img alt="Flow Production Tracking Toolkit" src="https://img.shields.io/badge/ShotGrid_Toolkit-tk--core_0.24.6-0c4a6e">
+  <img alt="Maya 2026" src="https://img.shields.io/badge/Maya-2026-1e293b">
+  <img alt="Substance 3D Painter" src="https://img.shields.io/badge/Substance_3D_Painter-engine-1e293b">
+  <img alt="Mari 7.1" src="https://img.shields.io/badge/Mari-7.1-1e293b">
+  <img alt="Katana 9.0 with Arnold" src="https://img.shields.io/badge/Katana-9.0_%2B_Arnold-1e293b">
+  <img alt="Nuke 17.1" src="https://img.shields.io/badge/Nuke-17.1-1e293b">
+  <img alt="USD" src="https://img.shields.io/badge/interchange-USD-3b0764">
+  <img alt="OCIO ACES 1.3" src="https://img.shields.io/badge/colour-OCIO_ACES_1.3-831843">
+  <img alt="Griptape Nodes" src="https://img.shields.io/badge/AI-Griptape_Nodes-14532d">
+</p>
+
 # sg_pipeline
 
 Custom ShotGrid (Flow Production Tracking) Toolkit pipeline, built on a fork of
-`tk-config-basic` v1.7.9. USD is the interchange format between applications.
+`tk-config-basic` v1.7.9. USD is the interchange format between applications,
+one OCIO config keeps colour the same everywhere, and Griptape Nodes plugs AI
+workflows into the same publishes.
+
+<p align="center">
+  <img src="docs/images/pipeline-map.svg" alt="Pipeline map: Modeling in Maya publishes USD to Texturing in Substance Painter and Mari, which publish Textures to Lookdev in Maya and Katana, then Lighting in Katana with Arnold renders to Compositing in Nuke; ShotGrid tracks every publish, and Griptape Nodes AI workflows load publishes and publish AI textures, images and 3D models back" width="100%">
+</p>
 
 ## Layout
 
@@ -47,6 +69,12 @@ time an application is launched.
 | Griptape -> everything | Griptape Nodes: **ShotGridPublishImage** node saves an image as PNG under `Documents/GriptapeNodes/sg_pipeline_publish` (or `SG_PIPELINE_GRIPTAPE_PUBLISH_ROOT`) and registers it as `Texture` (UDIM tile 1001; loads in Maya and Mari), `Image` or `Rendered Image` (loads in Nuke). Install the nodes with `griptape\install.ps1` and restart Griptape Nodes. They reach ShotGrid through `griptape\sg_bridge.py`, run with the desktop app's Python. |
 | AI 3D -> everything | Griptape Nodes: **ShotGridPublish3D** node takes a generated model (the 3D Model output of Rodin or Tripo, Load 3D, or a file path: GLB, glTF, USDZ, FBX, OBJ), converts it with `griptape/mesh_to_usd.py` and publishes it as `USD Geometry`, so every loader above picks it up. GLB/glTF are read in metres and written in cm with node transforms baked in and UVs kept (face-varying, which Mari needs); the PBR material becomes a UsdPreviewSurface with its textures next to the USD. USDZ is unpacked; FBX and OBJ go through Maya. Draco or meshopt compressed GLBs are refused. The generated file is kept in a `source` folder next to the USD. |
 | Maya -> Nuke | Nuke (stock `tk-nuke` engine) loader actions on `USD Geometry` publishes: **Create GeoImport Node (USD 3D)** and **Create ReadGeo Node (Classic 3D)**. Tested in Nuke 17.1v3. |
+
+### How the Griptape nodes reach ShotGrid
+
+<p align="center">
+  <img src="docs/images/griptape-bridge.svg" alt="Griptape Nodes call griptape/sg_bridge.py with JSON; the bridge runs with the desktop app's Python and tk-core, uses its saved sign-in, and reads or writes ShotGrid publishes; no password reaches Griptape" width="100%">
+</p>
 
 ## Tests
 
