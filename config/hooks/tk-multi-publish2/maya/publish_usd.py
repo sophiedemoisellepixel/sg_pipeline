@@ -82,7 +82,19 @@ class MayaUsdPublishPlugin(HookBaseClass):
             self.logger.error(error_msg)
             raise Exception(error_msg)
 
-        usd_path = usd_path_for_scene(scene_path)
+        # the studio location for the task (<step>/publish/usd/<name>.v###.usd)
+        # when the scene was saved with Workfiles, else next to the scene
+        placed = load_paths_helper(self.disk_location).maya_usd_publish(
+            self.parent.sgtk, item.context, scene_path
+        )
+        if placed:
+            usd_path, item.properties["publish_version"] = placed
+        else:
+            usd_path = usd_path_for_scene(scene_path)
+            self.logger.info(
+                "The scene is not in the task's work area (save it with File Save... "
+                "to use the studio folders); publishing next to the scene."
+            )
 
         # the base file publisher reads everything it needs from these
         item.properties["path"] = usd_path
@@ -149,8 +161,19 @@ class MayaUsdPublishPlugin(HookBaseClass):
         return usd_path
 
 
+def load_paths_helper(hook_folder):
+    """config/hooks/lib/sg_pipeline_templates.py (hooks are loaded by path, not as a package)."""
+    import importlib.util
+
+    path = os.path.join(os.path.dirname(os.path.dirname(hook_folder)), "lib", "sg_pipeline_templates.py")
+    spec = importlib.util.spec_from_file_location("sg_pipeline_templates", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 def usd_path_for_scene(scene_path):
-    """<scene folder>/publish/usd/<scene name>.usd"""
+    """Fallback: <scene folder>/publish/usd/<scene name>.usd"""
     scene_path = sgtk.util.ShotgunPath.normalize(scene_path)
     scene_dir, scene_file = os.path.split(scene_path)
     scene_name = os.path.splitext(scene_file)[0]

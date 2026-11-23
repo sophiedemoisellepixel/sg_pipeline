@@ -18,6 +18,9 @@ REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BUNDLE_CACHE = r"C:\Program Files\Shotgun\Resources\Desktop\Python\bundle_cache"
 CORE_PYTHON = os.path.join(BUNDLE_CACHE, "app_store", "tk-core", "v0.24.6", "python")
 PROJECT_ID = int(os.environ.get("SG_TEST_PROJECT_ID", "91"))
+# --task <id>: start in that Asset task and save the scene where Workfiles saves
+# it, so the USD must go to the studio folder <step>/publish/usd/
+TASK_ID = int(sys.argv[sys.argv.index("--task") + 1]) if "--task" in sys.argv else None
 
 os.environ["TK_BOOTSTRAP_CONFIG_OVERRIDE"] = os.path.join(REPO, "config")
 
@@ -43,7 +46,9 @@ manager = sgtk.bootstrap.ToolkitManager(user)
 manager.plugin_id = "basic.maya"
 manager.base_configuration = "sgtk:descriptor:app_store?name=tk-config-basic"
 manager.bundle_cache_fallback_paths = [BUNDLE_CACHE]
-engine = manager.bootstrap_engine("tk-maya", entity={"type": "Project", "id": PROJECT_ID})
+engine = manager.bootstrap_engine(
+    "tk-maya", entity={"type": "Task", "id": TASK_ID} if TASK_ID else {"type": "Project", "id": PROJECT_ID}
+)
 
 check("tk-maya engine started in %s" % engine.context, engine.name == "tk-maya")
 config_path = engine.sgtk.configuration_descriptor.get_path()
@@ -59,6 +64,21 @@ sg_set = cmds.sets(renderable=True, noSurfaceShader=True, empty=True, name="test
 cmds.connectAttr(shader + ".outColor", sg_set + ".surfaceShader")
 cmds.sets(cube, edit=True, forceElement=sg_set)
 scene_path = os.path.join(work_dir, "testAsset_model_v003.ma")
+expected = os.path.join(work_dir, "publish", "usd", "testAsset_model_v003.usd")
+expected_version = 3
+if TASK_ID:
+    # what Workfiles' File Save does: <step>/work/maya/selftest.v###.ma
+    tk = engine.sgtk
+    work = tk.templates["maya_asset_work"]
+    tk.create_filesystem_structure("Task", TASK_ID, engine="tk-maya")
+    fields = dict(engine.context.as_template_fields(work), name="selftest", version=1)
+    while os.path.exists(work.apply_fields(fields)):
+        fields["version"] += 1
+    scene_path = work.apply_fields(fields)
+    os.makedirs(os.path.dirname(scene_path), exist_ok=True)
+    expected = tk.templates["usd_asset_publish"].apply_fields(fields)
+    expected_version = fields["version"]
+    print("     work file:", scene_path)
 cmds.file(rename=scene_path)
 cmds.file(save=True, type="mayaAscii")
 
@@ -78,12 +98,11 @@ usd_task = usd_tasks[0]
 failed = pm.validate()
 check("validation passes (%d failures)" % len(failed), not failed)
 
-expected = os.path.join(work_dir, "publish", "usd", "testAsset_model_v003.usd")
 check("publish path is %s" % expected, os.path.normcase(usd_item.properties["path"]) == os.path.normcase(expected))
 check("publish type is USD Geometry", usd_item.properties["publish_type"] == "USD Geometry")
 
 hook = usd_task.plugin._hook_instance
-check("publish version read from file name", hook.get_publish_version(usd_task.settings, usd_item) == 3)
+check("publish version read from file name", hook.get_publish_version(usd_task.settings, usd_item) == expected_version)
 print("     publish name:", hook.get_publish_name(usd_task.settings, usd_item))
 
 # ---- export only (skips registering the publish in ShotGrid)

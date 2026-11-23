@@ -10,7 +10,7 @@ Custom ShotGrid (Flow Production Tracking) Toolkit pipeline, built on a fork of
 | `config/` | The Toolkit pipeline configuration (fork of the basic config). |
 | `config/core/` | Studio folder structure: `roots.yml` (the `primary` Local Storage, `C:\Studio_Projects`), `schema/` (the folders created per asset, shot and task) and `templates.yml` (work and publish paths; based on tk-config-default2 v1.7.8, our additions marked `sg_pipeline`). |
 | `config/color/` | The studio colour config, `sg_pipeline.ocio`: OCIO's ACES 1.3 studio config (OCIO 2.1 profile, so Mari 7.1 reads it) with file rules (png/jpg/tif are sRGB - Texture, exr/hdr are ACEScg). `build_config.py` rebuilds it; `nuke/init.py` switches new Nuke scripts to it. Every application launched from the desktop app gets `OCIO` from `config/hooks/tk-multi-launchapp/before_app_launch.py`; the `launch\*.bat` files set it too. |
-| `config/hooks/` | Our custom hooks, referenced from the env files as `{config}/...`. |
+| `config/hooks/` | Our custom hooks, referenced from the env files as `{config}/...`. `hooks/lib/sg_pipeline_templates.py` decides where publishes go: in an Asset or Shot task, with the file saved through Workfiles, Maya USD goes to `<step>/publish/usd/<name>.v###.usd` and Painter and Mari textures to `<step>/publish/textures/<name>/v###/`; otherwise the publishers keep their old paths (next to the file, or Mari's export root). |
 | `config/bundles/` | In-house engines: `tk-substancepainter`, `tk-mari`, `tk-katana`. |
 | `griptape/` | ShotGrid nodes for Griptape Nodes (`sg_pipeline_nodes.py`, `sg_pipeline_nodes_3d.py`), the model-to-USD converter, their installer and the ShotGrid bridge. |
 | `launch/desktop_dev.bat` | Starts the desktop app with this config instead of the stock one. |
@@ -54,11 +54,11 @@ Uses the sign-in saved by the desktop app and only reads from ShotGrid.
 
 | Test | Runs in | Writes to ShotGrid |
 | --- | --- | --- |
-| `tests\test_maya_usd.py` | `mayapy` | no |
+| `tests\test_maya_usd.py` | `mayapy`; `--task 5827` saves the scene in the task's work area and checks the studio USD path | no |
 | `tests\integration_publish_usd.py` | `mayapy` | yes: Asset, Task and one publish per run |
 | `tests\test_painter_engine.py` | Painter's `resources\pythonsdk\python.exe`, with a stub of Painter's API | no |
-| `tests\run_painter_selftest.ps1` | a new Painter window, which closes itself; saves a test project and exports textures under `sg_pipeline_work` | no |
-| `tests\run_mari_selftest.ps1` | Mari headless (no window); needs a previous Painter self-test run for the textures | no |
+| `tests\run_painter_selftest.ps1` | a new Painter window, which closes itself; saves a test project and exports textures under `sg_pipeline_work`; with `-EntityType Task -EntityId 5827 -WorkArea` it saves in the task's work area and checks the studio texture folder | no |
+| `tests\run_mari_selftest.ps1` | Mari 7.1v2 headless (no window); needs a previous Painter self-test run for the textures; `-EntityType Task -EntityId 5827` exports to the studio texture folder | no |
 | `tests\test_maya_textures.py` | `mayapy`; needs a previous Mari self-test run for the Mari textures | no |
 | `tests\test_nuke_usd.py` | `Nuke17.1.exe -t -i` (terminal mode with the interactive login licence); needs a previous Katana self-test run for the render | only with `SG_PIPELINE_SELFTEST_PUBLISH=1` (the PNG comp frames) |
 | `tests\run_katana_selftest.ps1` | Katana in script mode (no window), with Arnold and the engine; renders two frames on first run | only with `-Publish` (one Rendered Image publish) |
@@ -67,6 +67,7 @@ Uses the sign-in saved by the desktop app and only reads from ShotGrid.
 | `tests\run_mesh_consumers_check.ps1 -Usd <file>` | Painter (window) and Mari 7.1v2 (headless) build a project from a USD file, no ShotGrid | no |
 | `tests\check_folder_structure.py` | the desktop app's `Python3\python.exe`; starts Toolkit with the config | only with `--create-folders` (folders of Task 5827, recorded as FilesystemLocation) |
 | `tests\test_workfiles_hooks.py` | `katanaBin.exe --script` (real Katana, no window); or the desktop app's Python for Painter (a stand-in for Painter's project API) | no |
+| `tests\check_publish_paths.py` | the desktop app's `Python3\python.exe`; starts Toolkit in Task 5827 | no |
 | `tests\run_color_check.ps1` | Maya, Nuke, Katana and Mari headless, with `OCIO` set as the launcher sets it | no |
 | `tests\check_katana_launcher.py` | the desktop app's `Python3\python.exe`; launches nothing | no |
 | `tests\check_desktop_launcher.py` | the desktop app's `Python3\python.exe` | only with `--create` (adds the missing Painter, Mari and Katana Software entries) |

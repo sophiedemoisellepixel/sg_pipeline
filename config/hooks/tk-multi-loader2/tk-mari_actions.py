@@ -97,6 +97,10 @@ class MariActions(HookBaseClass):
             project_name(sg_publish_data), path.replace("\\", "/"), [channel]
         )
         project = mari.projects.current()
+        set_project_colorspaces(project)
+        for geo in mari.geo.list():
+            for existing in geo.channelList():
+                set_channel_colorspace(existing, existing.name())
         project.setMetadata(
             SOURCE_PUBLISH_METADATA, json.dumps(source_publish_record(sg_publish_data, path))
         )
@@ -134,6 +138,7 @@ class MariActions(HookBaseClass):
             channel = geo.createChannel(
                 channel_name, DEFAULT_CHANNEL_SIZE, DEFAULT_CHANNEL_SIZE, 8
             )
+            set_channel_colorspace(channel, channel_name)
 
         layer = channel.createPaintableLayer(layer_name_for(sg_publish_data))
         # resize the Mari patches to the size of the incoming images
@@ -142,6 +147,53 @@ class MariActions(HookBaseClass):
             "Imported %s into channel '%s', layer '%s'" % (template, channel_name, layer.name())
         )
         return layer
+
+
+# Colour spaces in the pipeline's OCIO config (config/color/sg_pipeline.ocio).
+# Same rule as Maya's texture actions: colour maps are sRGB textures, data maps
+# are not colour at all (Raw), so Mari must not convert them.
+COLOR_MAPS = ("basecolor", "diffuse", "emissive")
+TEXTURE_COLORSPACE = "sRGB - Texture"
+LINEAR_COLORSPACE = "ACEScg"
+
+
+def set_project_colorspaces(project):
+    """
+    New channels default to sRGB textures (8 and 16 bit) or ACEScg (float), and
+    Mari works in ACEScg. Skipped when Mari is not using the pipeline's config.
+    """
+    import mari
+
+    defaults = project.colorspaceDefaults()
+    targets = {
+        mari.ColorspaceDefaults.COLORSPACE_TARGET_INT8: TEXTURE_COLORSPACE,
+        mari.ColorspaceDefaults.COLORSPACE_TARGET_INT16: TEXTURE_COLORSPACE,
+        mari.ColorspaceDefaults.COLORSPACE_TARGET_FLOAT: LINEAR_COLORSPACE,
+        mari.ColorspaceDefaults.COLORSPACE_TARGET_WORKING: LINEAR_COLORSPACE,
+    }
+    try:
+        for target, name in targets.items():
+            defaults.setColorspace(target, name)
+        project.setColorspaceDefaults(defaults)
+    except Exception as error:
+        mari.app.log("sg_pipeline: kept Mari's colour defaults (%s)" % error)
+
+
+def set_channel_colorspace(channel, map_name):
+    """Colour maps read and write as sRGB - Texture; data maps are raw (no conversion)."""
+    import mari
+
+    config = channel.colorspaceConfig()
+    try:
+        if map_name.lower() in COLOR_MAPS:
+            config.setRaw(False)
+            config.setColorspace(mari.ColorspaceConfig.COLORSPACE_STAGE_NATIVE, TEXTURE_COLORSPACE)
+            config.setColorspace(mari.ColorspaceConfig.COLORSPACE_STAGE_OUTPUT, TEXTURE_COLORSPACE)
+        else:
+            config.setRaw(True)
+        channel.setColorspaceConfig(config)
+    except Exception as error:
+        mari.app.log("sg_pipeline: kept the colour space of channel %s (%s)" % (channel.name(), error))
 
 
 def channel_name_for(sg_publish_data):

@@ -21,7 +21,8 @@ $env:SG_PIPELINE_USE_SITE_TEXTURES = if ($SiteTextures) { "1" } else { "0" }
 
 $repo = Split-Path -Parent $PSScriptRoot
 $cache = "C:\Program Files\Shotgun\Resources\Desktop\Python\bundle_cache"
-$mari = Get-ChildItem "C:\Program Files\Mari*\Bundle\bin\Mari*.exe" | Sort-Object FullName | Select-Object -Last 1
+# the version the pipeline launches; Mari 8.0v1 exits without running -x scripts here
+$mari = Get-Item "C:\Program Files\Mari7.1v2\Bundle\bin\Mari7.1v2.exe"
 $out = Join-Path $env:TEMP "sg_pipeline_mari_selftest.json"
 $log = Join-Path $env:TEMP "sg_pipeline_mari_selftest.log"
 Remove-Item $out, $log -ErrorAction SilentlyContinue

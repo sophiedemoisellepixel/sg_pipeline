@@ -10,9 +10,13 @@ param(
     [int]$EntityId = 91,
     [int]$TimeoutSeconds = 300,
     # WRITES to ShotGrid: registers the exported textures as publishes
-    [switch]$Publish
+    [switch]$Publish,
+    # save the test project in the task's work area, as Workfiles does, so the
+    # publisher uses the studio folders (needs -EntityType Task -EntityId <asset task>)
+    [switch]$WorkArea
 )
 $env:SG_PIPELINE_SELFTEST_PUBLISH = if ($Publish) { "1" } else { "0" }
+$env:SG_PIPELINE_SELFTEST_STUDIO = if ($WorkArea) { "1" } else { "0" }
 
 $repo = Split-Path -Parent $PSScriptRoot
 $cache = "C:\Program Files\Shotgun\Resources\Desktop\Python\bundle_cache"

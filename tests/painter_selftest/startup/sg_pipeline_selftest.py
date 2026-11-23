@@ -179,12 +179,30 @@ def _texture_publish_checks(result, checks):
     if not work_root:
         return
 
-    # a saved project with a version number in its name
-    os.makedirs(work_root, exist_ok=True)
-    version = 1
-    while os.path.exists(os.path.join(work_root, "testAsset_texture_v%03d.spp" % version)):
-        version += 1
-    project_path = os.path.join(work_root, "testAsset_texture_v%03d.spp" % version)
+    if os.environ.get("SG_PIPELINE_SELFTEST_STUDIO") == "1":
+        # saved the way Workfiles saves it: <step>/work/substancepainter/selftest.v###.spp
+        tk = engine.sgtk
+        template = tk.templates["substancepainter_asset_work"]
+        target = engine.context.task or engine.context.entity
+        tk.create_filesystem_structure(target["type"], target["id"], engine="tk-substancepainter")
+        fields = engine.context.as_template_fields(template)
+        fields.update(name="selftest", version=1)
+        while os.path.exists(template.apply_fields(fields)):
+            fields["version"] += 1
+        project_path = template.apply_fields(fields)
+        version = fields["version"]
+        os.makedirs(os.path.dirname(project_path), exist_ok=True)
+        result["expected_texture_folder"] = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.dirname(project_path))),
+            "publish", "textures", "selftest", "v%03d" % fields["version"],
+        )
+    else:
+        # a saved project with a version number in its name
+        os.makedirs(work_root, exist_ok=True)
+        version = 1
+        while os.path.exists(os.path.join(work_root, "testAsset_texture_v%03d.spp" % version)):
+            version += 1
+        project_path = os.path.join(work_root, "testAsset_texture_v%03d.spp" % version)
 
     sp_project.save_as(project_path)
     result["project_path"] = sp_project.file_path()
@@ -266,6 +284,13 @@ def _texture_publish_checks(result, checks):
         for p in would_publish for f in p["files"][:1]
     )
     checks["version_from_project_name"] = all(p["version_number"] == version for p in would_publish)
+    if result.get("expected_texture_folder"):
+        # saved with the studio template: textures go to <step>/publish/textures/<name>/v###
+        checks["textures_in_studio_folder"] = all(
+            os.path.normcase(os.path.dirname(p["path"]["local_path"]))
+            == os.path.normcase(result["expected_texture_folder"])
+            for p in would_publish
+        )
 
 
 def _finish(error):

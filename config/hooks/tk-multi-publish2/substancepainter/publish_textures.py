@@ -57,7 +57,20 @@ class SubstancePainterTexturesPublishPlugin(HookBaseClass):
 
         texture_set = item.properties["texture_set"]
         map_name = item.properties["texture_map"]
-        export_dir = textures_dir_for_project(project_path)
+        # the studio location for the task (<step>/publish/textures/<name>/v###/)
+        # when the project was saved with Workfiles, else next to the project
+        placed = load_paths_helper(self.disk_location).painter_texture_folder(
+            self.parent.sgtk, item.context, project_path
+        )
+        if placed:
+            export_dir, version = placed
+        else:
+            export_dir = textures_dir_for_project(project_path)
+            version = self.parent.util.get_version_number(project_path) or 1
+            self.logger.info(
+                "The project is not in the task's work area (save it with File Save... "
+                "to use the studio folders); exporting next to the project."
+            )
 
         config = self._export_config(item, export_dir)
         try:
@@ -78,9 +91,7 @@ class SubstancePainterTexturesPublishPlugin(HookBaseClass):
         item.properties["publish_path"] = publish_path
         item.properties["publish_type"] = PUBLISH_TYPE
         item.properties["publish_name"] = "%s_%s" % (texture_set, map_name)
-        item.properties["publish_version"] = (
-            self.parent.util.get_version_number(project_path) or 1
-        )
+        item.properties["publish_version"] = version
         item.properties["export_config"] = config
 
         self.logger.info("Textures will be exported to: %s" % publish_path)
@@ -117,8 +128,19 @@ class SubstancePainterTexturesPublishPlugin(HookBaseClass):
         )
 
 
+def load_paths_helper(hook_folder):
+    """config/hooks/lib/sg_pipeline_templates.py (hooks are loaded by path, not as a package)."""
+    import importlib.util
+
+    path = os.path.join(os.path.dirname(os.path.dirname(hook_folder)), "lib", "sg_pipeline_templates.py")
+    spec = importlib.util.spec_from_file_location("sg_pipeline_templates", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 def textures_dir_for_project(project_path):
-    """<project folder>/publish/textures/<project name>"""
+    """Fallback: <project folder>/publish/textures/<project name>"""
     project_path = sgtk.util.ShotgunPath.normalize(project_path)
     project_dir, project_file = os.path.split(project_path)
     return os.path.join(

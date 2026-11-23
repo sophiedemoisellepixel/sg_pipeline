@@ -77,16 +77,24 @@ class MariChannelPublishPlugin(HookBaseClass):
         version = self._next_version(item, publish_name)
         extension = "png" if channel.depth() == 8 else "exr"
 
-        entity = item.context.entity or item.context.project
-        export_dir = os.path.join(
-            export_root(settings["Export Root"].value),
-            _safe(entity["name"]),
-            _safe(project.name()),
-            "v%03d" % version,
+        # the studio location for the task
+        # (<step>/publish/textures/<mari project>/v###/<name>.<UDIM>.<ext>),
+        # else the export root (no Asset task, or a template missing)
+        publish_path = load_paths_helper(self.disk_location).mari_texture_path(
+            self.parent.sgtk, item.context, project.name(), _safe(publish_name), version, extension
         )
-        publish_path = os.path.join(
-            export_dir, "%s.%s.%s" % (_safe(publish_name), UDIM_TOKEN, extension)
-        )
+        if not publish_path:
+            entity = item.context.entity or item.context.project
+            export_dir = os.path.join(
+                export_root(settings["Export Root"].value),
+                _safe(entity["name"]),
+                _safe(project.name()),
+                "v%03d" % version,
+            )
+            publish_path = os.path.join(
+                export_dir, "%s.%s.%s" % (_safe(publish_name), UDIM_TOKEN, extension)
+            )
+            self.logger.info("Not in an Asset task; exporting under the export root.")
 
         item.properties["path"] = publish_path
         item.properties["publish_path"] = publish_path
@@ -154,6 +162,17 @@ class MariChannelPublishPlugin(HookBaseClass):
             order=[{"field_name": "version_number", "direction": "desc"}],
         )
         return ((latest or {}).get("version_number") or 0) + 1
+
+
+def load_paths_helper(hook_folder):
+    """config/hooks/lib/sg_pipeline_templates.py (hooks are loaded by path, not as a package)."""
+    import importlib.util
+
+    path = os.path.join(os.path.dirname(os.path.dirname(hook_folder)), "lib", "sg_pipeline_templates.py")
+    spec = importlib.util.spec_from_file_location("sg_pipeline_templates", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 def export_root(setting_value):
