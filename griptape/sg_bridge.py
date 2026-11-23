@@ -49,12 +49,34 @@ CORE_PYTHON = os.environ.get(
     r"C:\Program Files\Shotgun\Resources\Desktop\Python\bundle_cache\app_store\tk-core\v0.24.6\python",
 )
 FIELDS = ["code", "name", "version_number", "published_file_type", "entity", "task", "path", "description"]
-# the pipeline's site; the desktop app may be showing another one
-SITE = os.environ.get("SG_PIPELINE_SITE", "https://your-site.shotgrid.autodesk.com")
+LOCAL_SETTINGS = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "sg_pipeline.local.json")
+
+
+def _pipeline_site():
+    """
+    The ShotGrid site the pipeline works on (the desktop app may be showing
+    another one): SG_PIPELINE_SITE, else "shotgrid_site" in
+    sg_pipeline.local.json at the repo root. That file is git-ignored, so each
+    studio keeps its own site out of the repository; copy
+    sg_pipeline.local.example.json to start one.
+    """
+    site = os.environ.get("SG_PIPELINE_SITE")
+    if not site and os.path.isfile(LOCAL_SETTINGS):
+        with open(LOCAL_SETTINGS, encoding="utf-8") as handle:
+            site = json.load(handle).get("shotgrid_site")
+    return (site or "").rstrip("/")
+
+
+SITE = _pipeline_site()
 
 
 def connect():
     """A connection to SITE with the sign-in the desktop app saved for it."""
+    if not SITE:
+        raise RuntimeError(
+            "No ShotGrid site set: put {\"shotgrid_site\": \"https://<your site>.shotgrid.autodesk.com\"} "
+            "in %s (see sg_pipeline.local.example.json) or set SG_PIPELINE_SITE." % LOCAL_SETTINGS
+        )
     sys.path.insert(0, CORE_PYTHON)
     import sgtk
     from tank.authentication import session_cache

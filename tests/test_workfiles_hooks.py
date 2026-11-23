@@ -15,7 +15,10 @@ import sys
 import tempfile
 import types
 
-REPO = os.environ.get("SG_PIPELINE_REPO") or r"C:\pipeline\sg_pipeline"
+# Katana's --script runs the file without __file__; run the tests from the repo folder
+REPO = os.environ.get("SG_PIPELINE_REPO") or (
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))) if "__file__" in globals() else os.getcwd()
+)
 HOOKS = os.path.join(REPO, "config", "hooks", "tk-multi-workfiles2")
 OUT = os.path.join(tempfile.gettempdir(), "sg_pipeline_workfiles_test")
 os.makedirs(OUT, exist_ok=True)

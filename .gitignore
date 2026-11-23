@@ -1,2 +1,5 @@
 __pycache__/
 *.pyc
+
+# this studio's own settings (ShotGrid site...): never committed
+sg_pipeline.local.json

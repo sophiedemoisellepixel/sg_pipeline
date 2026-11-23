@@ -18,6 +18,9 @@ Custom ShotGrid (Flow Production Tracking) Toolkit pipeline, built on a fork of
 
 ## Using it
 
+0. Copy `sg_pipeline.local.example.json` to `sg_pipeline.local.json` and put your
+   ShotGrid site in it. That file is git-ignored: your site stays on your machine.
+   (Or set `SG_PIPELINE_SITE`.) The Griptape bridge and the tests use it.
 1. Quit the Flow Production Tracking desktop app (tray icon > Quit).
 2. Run `launch\desktop_dev.bat`.
 3. Open the project and launch Maya from the desktop app.
